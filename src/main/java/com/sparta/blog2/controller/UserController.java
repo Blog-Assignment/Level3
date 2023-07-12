@@ -3,14 +3,18 @@ package com.sparta.blog2.controller;
 import com.sparta.blog2.dto.SignupRequestDto;
 import com.sparta.blog2.dto.StatusCodeDto;
 import com.sparta.blog2.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/user")
 public class UserController {
 
     private final UserService userService;
@@ -19,30 +23,39 @@ public class UserController {
         this.userService = userService;
     }
 
-
-    @GetMapping("/user/login-page")
+    @GetMapping("/login-page")
     public String loginPage(){
         return "login";
     }
 
-    @GetMapping("/user/signup")
+    @GetMapping("/signup")
     public String signupPage(){
         return "signup";
     }
 
-    @PostMapping("/user/signup")
-    public StatusCodeDto signup(@RequestBody @Valid SignupRequestDto requestDto){
-        userService.signup(requestDto);
-        return new StatusCodeDto("회원가입 성공", HttpStatus.OK.value());
+    @PostMapping("/signup")
+    public StatusCodeDto signup(@RequestBody @Valid SignupRequestDto requestDto, BindingResult bindingResult, HttpServletResponse httpServletResponse){
+        //Validation 예외처리
+            List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+            if(fieldErrors.size()>0){
+                for (FieldError fieldError : bindingResult.getFieldErrors()) {
+                    log.error(fieldError.getField()+"필드 : "+fieldError.getDefaultMessage());
+                }
+                httpServletResponse.setStatus(400);
+                return new StatusCodeDto("회원가입 실패", httpServletResponse.getStatus());
+            }
+            userService.signup(requestDto);
+            return new StatusCodeDto("회원가입 성공", httpServletResponse.getStatus());
+        }
     }
 
-//    @PostMapping("/user/login")
-//    public StatusCodeDto login(@RequestBody LoginRequestDto requestDto, HttpServletResponse res){
-//        try {
-//            userService.login(requestDto, res);
-//        } catch (Exception e) {
-//            System.out.println("로그인 실패");
-//        }
-//        return new StatusCodeDto("로그인 성공", HttpStatus.OK.value());
+//    //회원관련 정보 받기
+//    @GetMapping("/user-info")
+//    @ResponseBody
+//    public UserInfoDto getUserinfo(@AuthenticationPrincipal UserDetailsImpl userDetails){
+//        String username = userDetails.getUser().getUsername();
+//        UserRoleEnum role = userDetails.getUser().getRole();
+//        boolean isAdmin = (role == UserRoleEnum.ADMIN);
+//
+//        return new UserInfoDto;
 //    }
-}

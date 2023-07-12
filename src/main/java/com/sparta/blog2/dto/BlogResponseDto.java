@@ -4,6 +4,8 @@ import com.sparta.blog2.entity.Blog;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 public class BlogResponseDto {
@@ -13,6 +15,7 @@ public class BlogResponseDto {
     private String contents;
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
+    private List<ReplyResponseDto> replyList = new ArrayList<>();
 
     public BlogResponseDto(Blog blog) {
         this.id = blog.getId();
@@ -21,5 +24,6 @@ public class BlogResponseDto {
         this.contents = blog.getContents();
         this.createdAt = blog.getCreatedAt();
         this.modifiedAt = blog.getModifiedAt();
+        this.replyList = blog.getReplyList().stream().map(ReplyResponseDto::new).toList();
     }
 }

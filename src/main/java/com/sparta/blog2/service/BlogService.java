@@ -4,13 +4,13 @@ import com.sparta.blog2.dto.BlogRequestDto;
 import com.sparta.blog2.dto.BlogResponseDto;
 import com.sparta.blog2.dto.StatusCodeDto;
 import com.sparta.blog2.entity.Blog;
+import com.sparta.blog2.entity.User;
+import com.sparta.blog2.entity.UserRoleEnum;
 import com.sparta.blog2.jwt.JwtUtil;
 import com.sparta.blog2.repository.BlogRepository;
-import io.jsonwebtoken.Claims;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.CookieValue;
 
 import java.util.List;
 
@@ -25,22 +25,21 @@ public class BlogService {
     }
 
     //게시글 작성
-    public BlogResponseDto createBlog(BlogRequestDto requestDto, @CookieValue(JwtUtil.AUTHORIZATION_HEADER) String tokenValue) {
-        String loginname = loginUsername(tokenValue);
+    public BlogResponseDto createBlog(BlogRequestDto requestDto, User user) {
 
             //RequestDto -> Entity
-            Blog blog = new Blog(requestDto, loginname);
+            Blog blog = new Blog(requestDto, user);
 
             //DB 저장
             Blog saveBlog = blogRepository.save(blog);
 
             //Entity -> ResponseDto
-            BlogResponseDto blogResponseDto = new BlogResponseDto(blog);
+            BlogResponseDto blogResponseDto = new BlogResponseDto(saveBlog);
 
             return blogResponseDto;
         }
 
-        //전체 게시글 조회
+    //전체 게시글 조회
     public List<BlogResponseDto> getBlog() {
         //DB 조회
         return blogRepository.findAllByOrderByModifiedAtDesc().stream().map(BlogResponseDto::new).toList();
@@ -48,27 +47,26 @@ public class BlogService {
 
     //게시글 수정
     @Transactional
-    public BlogResponseDto updateBlog(Long id, BlogRequestDto requestDto, @CookieValue(JwtUtil.AUTHORIZATION_HEADER) String tokenValue) {
+    public BlogResponseDto updateBlog(Long id, BlogRequestDto requestDto, User user) {
         //해당 글이 DB에 존재하는지 확인
         Blog blog = findBlog(id);
 
-        String loginname = loginUsername(tokenValue);
-        if(!loginname.equals(blog.getUsername())){
+        if(!(user.getUsername().equals((blog.getUser().getUsername())) || UserRoleEnum.ADMIN.equals(user.getRole()))){
             throw new IllegalArgumentException("작성자만 수정가능합니다.");
         }
         //글 내용 수정
         blog.update(requestDto);
 
         return new BlogResponseDto(blog);
+
     }
 
     //게시글 삭제하기
-    public StatusCodeDto deleteBlog(Long id, @CookieValue(JwtUtil.AUTHORIZATION_HEADER) String tokenValue) {
+    public StatusCodeDto deleteBlog(Long id,  User user) {
         //해당 글이 DB에 존재하는지 확인
         Blog blog = findBlog(id);
 
-        String loginname = loginUsername(tokenValue);
-        if(!loginname.equals(blog.getUsername())){
+        if(!(user.getUsername().equals((blog.getUser().getUsername())) || UserRoleEnum.ADMIN.equals(user.getRole()))){
             throw new IllegalArgumentException("작성자만 삭제가능합니다.");
         }
 
@@ -92,16 +90,5 @@ public class BlogService {
                 new IllegalArgumentException("선택한 글은 존재하지 않습니다."));
 
         return blog;
-    }
-
-    //유효한 토큰인지 검사
-    private String loginUsername(@CookieValue(JwtUtil.AUTHORIZATION_HEADER) String tokenValue) {
-        String token = jwtUtil.substringToken(tokenValue);
-        if (!jwtUtil.validateToken(token)) {
-            throw new IllegalArgumentException("Token Error");
-        }
-        Claims info = jwtUtil.getUserInfoFromToken(token);
-        String loginname = info.getSubject();
-        return loginname;
     }
 }

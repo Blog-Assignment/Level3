@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity // JPA가 관리할 수 있는 Entity 클래스 지정
 @Getter
 @Setter
@@ -15,17 +18,28 @@ public class Blog extends Timestamped {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "title", nullable = false)
+
+    @Column(nullable = false)
     private String title;
-    @Column(name = "username", nullable = false)
+
+    @Column(nullable = false)
     private String username;
-    @Column(name = "contents", nullable = false, length = 500)
+
+    @Column(nullable = false, length = 500)
     private String contents;
 
-    public Blog(BlogRequestDto requestDto, String loginname) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @OneToMany(mappedBy = "blog")
+    private List<Reply> replyList = new ArrayList<>();
+
+    public Blog(BlogRequestDto requestDto, User user) {
         this.title = requestDto.getTitle();
-        this.username = loginname;
+        this.username = user.getUsername();
         this.contents = requestDto.getContents();
+        this.user = user;
     }
 
     public void update(BlogRequestDto requestDto) {

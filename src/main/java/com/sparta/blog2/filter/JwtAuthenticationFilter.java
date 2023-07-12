@@ -53,11 +53,15 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         String token = jwtUtil.createToken(username, role);
         jwtUtil.addJwtToCookie(token, response);
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getWriter().write("로그인에 성공하였습니다.");
     }
 
     @Override
     public void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
         log.info("로그인 실패");
-        response.setStatus(401);
+        response.setStatus(400);
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getWriter().write("회원을 찾을 수 없습니다.");
     }
 }
