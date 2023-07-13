@@ -2,15 +2,10 @@ package com.sparta.blog2.controller;
 
 import com.sparta.blog2.dto.ReplyRequestDto;
 import com.sparta.blog2.dto.ReplyResponseDto;
-import com.sparta.blog2.entity.UserRoleEnum;
 import com.sparta.blog2.security.UserDetailsImpl;
 import com.sparta.blog2.service.ReplyService;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -45,19 +40,4 @@ public class ReplyController {
     public ReplyResponseDto deleteReply(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails){
         return replyService.deleteReply(id, userDetails.getUser());
     }
-
-
-
-
-
-
-//    @Secured(UserRoleEnum.Authority.ADMIN)
-//    @GetMapping("/secured")
-//    public String getProductsByAdmin(@AuthenticationPrincipal UserDetailsImpl userDetails){
-//        System.out.println("userDetails.getUsername() = " + userDetails.getUsername());
-//        for (GrantedAuthority authority : userDetails.getAuthorities()) {
-//            System.out.println("authority.getAuthority() = " + authority.getAuthority());
-//        }
-//        return "redirect:/";
-//    }
 }

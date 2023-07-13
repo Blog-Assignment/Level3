@@ -47,15 +47,4 @@ public class UserController {
             userService.signup(requestDto);
             return new StatusCodeDto("회원가입 성공", httpServletResponse.getStatus());
         }
-    }
-
-//    //회원관련 정보 받기
-//    @GetMapping("/user-info")
-//    @ResponseBody
-//    public UserInfoDto getUserinfo(@AuthenticationPrincipal UserDetailsImpl userDetails){
-//        String username = userDetails.getUser().getUsername();
-//        UserRoleEnum role = userDetails.getUser().getRole();
-//        boolean isAdmin = (role == UserRoleEnum.ADMIN);
-//
-//        return new UserInfoDto;
-//    }
+}
